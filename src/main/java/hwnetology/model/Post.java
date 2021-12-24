@@ -40,4 +40,8 @@ public class Post {
     public void restore() {
         this.removedFlag = false;
     }
+
+    public boolean getRemovedFlag() {
+        return this.removedFlag;
+    }
 }

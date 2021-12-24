@@ -4,6 +4,7 @@ import hwnetology.exceptions.NotFoundException;
 import hwnetology.model.Post;
 import org.springframework.stereotype.Repository;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -13,6 +14,8 @@ import java.util.concurrent.atomic.AtomicLong;
 @Repository
 public class PostRepository {
 
+
+
     private List<Post> postList;
     private static AtomicLong idGenerator;
     private final long DELTA_ID = 1;
@@ -20,25 +23,34 @@ public class PostRepository {
     public PostRepository() {
         postList = new CopyOnWriteArrayList<>();
         idGenerator = new AtomicLong(0);
+
+        // Значения для проверки
+        postList.add(new Post(10, "First post"));
+        postList.add(new Post(15, "Second post"));
+        postList.add(new Post(20, "Weird post))))"));
     }
 
     public synchronized List<Post> all() {
-        return postList;
+        // Создаём новый лист, который будет содержать только не отмеченные на удаление посты
+        List<Post> actualList = new LinkedList<>();
+        for (Post currentPost : postList) {
+            if (currentPost.getRemovedFlag() == false) {
+                actualList.add(currentPost);
+            }
+        }
+        return actualList;
     }
 
     public synchronized Optional<Post> getById(long id) {
-        Post resultPost = new Post();
-
         for (Post currentPost : postList) {
             if (currentPost.getId() == id) {
-                resultPost = currentPost;
-                break;
+                return Optional.of(currentPost);
             }
         }
-        return Optional.of(resultPost);
+        return Optional.empty();
     }
 
-    public synchronized Post save(Post post) {
+    public synchronized Optional<Post> save(Post post) {
         // если id = 0, то создаём новый пост
         Post freshPost = new Post();
         if (post.getId() == 0) {
@@ -47,25 +59,29 @@ public class PostRepository {
         }
 
         // если id !=0, то изменяем имеющийся пост
-        if (post.getId() != 0) {
-            for (Post currentPost : postList) {
-                if (currentPost.getId() == post.getId()) {
-                    currentPost.setContent(post.getContent());
-                    break;
-                }
-                else {
-                    throw new NotFoundException("There is no post with id = " + post.getId());
+        if (post.getRemovedFlag() == false) {
+            if (post.getId() != 0) {
+                for (Post currentPost : postList) {
+                    if (currentPost.getId() == post.getId()) {
+                        currentPost.setContent(post.getContent());
+                        break;
+                    } else {
+                        throw new NotFoundException("There is no post with id = " + post.getId());
+                    }
                 }
             }
         }
+        else {
+            return Optional.empty();
+        }
 
-        return freshPost;
+        return Optional.of(freshPost);
     }
 
     public synchronized void removeById(long id) {
         for (Post currentPost : postList) {
-            if(currentPost.getId() == id) {
-                postList.remove(currentPost);
+            if (currentPost.getId() == id) {
+                currentPost.markAsRemoved();
             }
         }
     }

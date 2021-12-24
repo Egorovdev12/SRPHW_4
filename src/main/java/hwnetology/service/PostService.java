@@ -6,6 +6,7 @@ import hwnetology.repository.PostRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 // Класс, реализующий бизнес логику нашего приложения
 @Service
@@ -26,7 +27,7 @@ public class PostService {
     }
 
     public Post save(Post post) {
-        return repository.save(post);
+        return repository.save(post).orElseThrow(NotFoundException::new);
     }
 
     public void removeById(long id) {
