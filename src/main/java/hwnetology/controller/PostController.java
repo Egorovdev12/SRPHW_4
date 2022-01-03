@@ -10,7 +10,6 @@ import java.util.List;
 @RequestMapping("/api/posts")
 public class PostController {
 
-
     private final PostService service;
 
     public PostController (PostService service) {
