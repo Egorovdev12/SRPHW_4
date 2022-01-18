@@ -58,6 +58,7 @@ public class PostRepository {
         if (post.getId() == 0) {
             freshPost = new Post(idGenerator.incrementAndGet(), post.getContent());
             postList.put(idGenerator.get(), freshPost);
+            return Optional.ofNullable(freshPost);
         }
 
         // если id !=0, то изменяем имеющийся пост
