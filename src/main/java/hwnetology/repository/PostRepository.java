@@ -17,7 +17,6 @@ public class PostRepository {
 
     private Map<Long, Post> postList;
     private static AtomicLong idGenerator;
-    private final long DELTA_ID = 1;
 
     public PostRepository() {
         postList = new ConcurrentHashMap<>();
@@ -28,6 +27,10 @@ public class PostRepository {
         postList.put(15L, new Post(15, "Second post"));
         postList.put(20L, new Post(20, "Weird post))))"));
         postList.get(20L).markAsRemoved();
+    }
+
+    private boolean containsKey(Long key) {
+        return postList.containsKey(key);
     }
 
     public List<Post> all() {
@@ -42,47 +45,38 @@ public class PostRepository {
     }
 
     public Optional<Post> getById(long id) {
-        for (Post currentPost : postList.values()) {
-            if (currentPost.getId() == id) {
-                return Optional.of(currentPost);
-            }
-        }
-        return Optional.empty();
+            if (containsKey(id) && postList.get(id).getRemovedFlag() == false)
+                return Optional.ofNullable(postList.get(id));
+            else
+                return Optional.empty();
     }
 
     public Optional<Post> save(Post post) {
+
         // если id = 0, то создаём новый пост
         Post freshPost = new Post();
         if (post.getId() == 0) {
-            freshPost = new Post(idGenerator.addAndGet(DELTA_ID), post.getContent());
+            freshPost = new Post(idGenerator.incrementAndGet(), post.getContent());
             postList.put(idGenerator.get(), freshPost);
         }
 
         // если id !=0, то изменяем имеющийся пост
         if (post.getRemovedFlag() == false) {
-            if (post.getId() != 0) {
-                for (Post currentPost : postList.values()) {
-                    if (currentPost.getId() == post.getId()) {
-                        currentPost.setContent(post.getContent());
-                        break;
-                    } else {
-                        throw new NotFoundException("There is no post with id = " + post.getId());
-                    }
-                }
+            if (containsKey(post.getId())) {
+                postList.put(post.getId(), post);
+            } else {
+                throw new NotFoundException();
             }
-        }
-        else {
+        } else {
             return Optional.empty();
         }
-
-        return Optional.of(freshPost);
+        return Optional.ofNullable(freshPost);
     }
 
     public void removeById(long id) {
-        for (Post currentPost : postList.values()) {
-            if (currentPost.getId() == id) {
-                currentPost.markAsRemoved();
-            }
-        }
+        if (containsKey(id))
+            postList.get(id).markAsRemoved();
+        else
+            throw new NotFoundException();
     }
 }
