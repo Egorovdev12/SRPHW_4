@@ -36,22 +36,20 @@ public class PostRepository {
 
     public Post save(Post post) {
         // если id = 0, то создаём новый пост
-        Post freshPost = new Post();
         if (post.getId() == 0) {
-            freshPost = new Post(idGenerator.incrementAndGet(), post.getContent());
-            postList.put(idGenerator.get(), freshPost);
+          postList.put(idGenerator.incrementAndGet(), new Post(idGenerator.get(), post.getContent()));
+          return postList.get(idGenerator.get());
         }
-
         // если id !=0, то изменяем имеющийся пост
-        if (post.getId() != 0) {
+        else {
             if (containsKey(post.getId())) {
                 postList.put(post.getId(), post);
+                return postList.get(post.getId());
             }
             else {
                 throw new NotFoundException();
             }
         }
-        return freshPost;
     }
 
     public void removeById(long id) {
