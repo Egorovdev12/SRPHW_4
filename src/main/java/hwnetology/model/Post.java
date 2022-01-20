@@ -5,7 +5,7 @@ public class Post {
 
     private long id;
     private String content;
-    private boolean removedFlag;
+    private transient boolean removedFlag;
 
     public Post() {
 
@@ -14,7 +14,7 @@ public class Post {
     public Post(long id, String content) {
         this.id = id;
         this.content = content;
-        this.removedFlag = false;
+        setRemovedFlag(false);
     }
 
     public long getId() {
@@ -43,5 +43,9 @@ public class Post {
 
     public boolean getRemovedFlag() {
         return this.removedFlag;
+    }
+
+    public void setRemovedFlag(boolean value) {
+        this.removedFlag = value;
     }
 }

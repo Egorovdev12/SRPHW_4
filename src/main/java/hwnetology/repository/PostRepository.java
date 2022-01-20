@@ -47,35 +47,32 @@ public class PostRepository {
     public Optional<Post> getById(long id) {
             if (containsKey(id) && postList.get(id).getRemovedFlag() == false)
                 return Optional.ofNullable(postList.get(id));
+            else if (containsKey(id) && postList.get(id).getRemovedFlag() == true)
+                throw new NotFoundException();
             else
                 return Optional.empty();
     }
 
-    public Optional<Post> save(Post post) {
-
+    public Post save(Post post) {
         // если id = 0, то создаём новый пост
-        Post freshPost = new Post();
         if (post.getId() == 0) {
-            freshPost = new Post(idGenerator.incrementAndGet(), post.getContent());
-            postList.put(idGenerator.get(), freshPost);
-            return Optional.ofNullable(freshPost);
+            postList.put(idGenerator.incrementAndGet(), new Post(idGenerator.get(), post.getContent()));
+            return postList.get(idGenerator.get());
         }
-
-        // если id !=0, то изменяем имеющийся пост
-        if (post.getRemovedFlag() == false) {
-            if (containsKey(post.getId())) {
+        // если id !=0, то изменяем пост, если он имеется
+        else {
+            if ((containsKey(post.getId())) && (post.getRemovedFlag() == false)) {
                 postList.put(post.getId(), post);
-            } else {
+                return postList.get(post.getId());
+            }
+            else {
                 throw new NotFoundException();
             }
-        } else {
-            return Optional.empty();
         }
-        return Optional.ofNullable(freshPost);
     }
 
     public void removeById(long id) {
-        if (containsKey(id))
+        if ((containsKey(id)) && (postList.get(id).getRemovedFlag() == false))
             postList.get(id).markAsRemoved();
         else
             throw new NotFoundException();
